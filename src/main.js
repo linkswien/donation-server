@@ -5,6 +5,9 @@ import koaBody from 'koa-body';
 import config from "./config.js"
 import alphanumeric from "alphanumeric-id";
 import {postDonateCard} from "./routes/donate_card.js";
+import {postStripeWebhook} from "./routes/stripe_webhook.js";
+import {postCreateIntent} from "./routes/create_intent.js";
+import {postFinishIntent} from "./routes/finish_intent.js";
 
 console.log(`
       _                   _   _                                                
@@ -18,7 +21,9 @@ console.log(`
 const app = new Koa();
 
 // Body handler
-app.use(koaBody());
+app.use(koaBody({
+  includeUnparsed: true
+}));
 
 // Global error handling
 app.use(async (ctx, next) => {
@@ -43,6 +48,21 @@ app.use(async (ctx, next) => {
   await next();
 });
 
+// Real ip
+app.use(async (ctx, next) => {
+  const realIpHeaders = config["server"]["realIpHeaders"] ?? [];
+
+  for (let realIpHeader of realIpHeaders) {
+    const realIp = ctx.get(realIpHeader);
+    if (realIp != null) {
+      ctx.ip = realIp;
+      break
+    }
+  }
+
+  await next();
+})
+
 // CORS
 if (config["server"]["corsAny"]) {
   app.use(async (ctx, next) => {
@@ -58,6 +78,9 @@ const appRouter = new Router();
 appRouter.get("/", ctx => ctx.body = {info: "This is a donation server using stripe made with <3"})
 appRouter.post("/donate/sepa", ...postDonateSepa)
 appRouter.post("/donate/card", ...postDonateCard)
+appRouter.post("/payment-intent", ...postCreateIntent)
+appRouter.post("/payment-intent/finish", ...postFinishIntent)
+appRouter.post("/webhook", ...postStripeWebhook)
 
 app.use(appRouter.routes());
 app.use(appRouter.allowedMethods());

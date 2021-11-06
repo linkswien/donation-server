@@ -25,9 +25,13 @@ async function autoPagingToArray(list) {
   return resultArray;
 }
 
-export async function addPriceToCache(productId, price) {
-  const prices = await getPricesByProduct(productId);
-  prices.push(price);
+export function splitStripeName(stripeCustomer) {
+  if (stripeCustomer.name == null) return null;
+
+  const split = stripeCustomer.name.split(" ");
+  if (split.length !== 2) return null;
+
+  return {firstName: split[0], lastName: split[1]};
 }
 
 getPricesByProduct(config["stripe"]["monthlyProductId"])

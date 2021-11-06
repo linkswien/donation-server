@@ -1,22 +1,15 @@
-import {getJoiMiddleware} from "../shared.js";
-import Joi from "joi";
 import {
-  addChargeOrSubscriptionForSource,
+  addSubscriptionForSource, donateValidator, DonationType,
   getOrCreateCustomer,
   getOrCreateSource
 } from "./donate_shared.js";
 import {stripe} from "../stripe_helper.js";
 
 export const postDonateCard = [
-  getJoiMiddleware(Joi.object({
-    email: Joi.string().email().required(),
-    type: Joi.string().allow("one-time", "monthly").required(),
-    amount: Joi.number().min(1).max(1000).precision(2).required(),
-    sourceId: Joi.string().min(5).max(50).required()
-  })),
+  donateValidator,
 
   async (ctx) => {
-    const {email, sourceId, type, amount} = ctx.request.body;
+    const {email, sourceId, amount} = ctx.request.body;
     const customer = await getOrCreateCustomer(ctx, email);
 
     // Get and check source
@@ -31,7 +24,8 @@ export const postDonateCard = [
     // Check for existing source on the customer
     const source = await getOrCreateSource(ctx, customer, inputSource);
 
-    await addChargeOrSubscriptionForSource(ctx, type, amount, customer, source);
+    // Create final subscription
+    await addSubscriptionForSource(ctx, amount, customer, source);
 
     ctx.body = {
       okay: true

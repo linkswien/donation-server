@@ -5,3 +5,9 @@ monthlyProductId = ""
 [server]
 port = 3000
 corsAny = false
+realIpHeaders = []
+
+[mautic]
+url = ""
+username = ""
+password = ""
