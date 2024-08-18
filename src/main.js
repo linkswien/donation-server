@@ -5,6 +5,7 @@ import koaBody from 'koa-body';
 import config from "./config.js"
 import alphanumeric from "alphanumeric-id";
 import {postDonateCard} from "./routes/donate_card.js";
+import {postCreateSubscription} from "./routes/create_subscription.js";
 import {postStripeWebhook} from "./routes/stripe_webhook.js";
 import {postCreateIntent} from "./routes/create_intent.js";
 import {postFinishIntent} from "./routes/finish_intent.js";
@@ -73,6 +74,7 @@ appRouter.get("/config", async (ctx) => {
     publicKey: config["stripe"]["publicKey"]
   }
 });
+appRouter.post("/subscription", ...postCreateSubscription)
 appRouter.post("/donate/sepa", ...postDonateSepa)
 appRouter.post("/donate/card", ...postDonateCard)
 appRouter.post("/payment-intent", ...postCreateIntent)

@@ -36,10 +36,13 @@ export const postFinishIntent = [
       return ctx.withError(404, "Unable to retrieve payment method");
     }
 
+    // Figure out donation type - if it has an invoice associated, it is a subscription
+    const donationType = paymentIntent.invoice != null ? DonationType.Monthly : DonationType.OneTime;
+
     ctx.log(`Finishing payment intent ${paymentIntent.id}, amount: ${paymentIntent.amount}`)
 
     await handleMauticDonation(ctx, customer, {
-      type: DonationType.OneTime,
+      type: donationType,
       amountCents: paymentIntent.amount,
       paymentMethod: paymentMethod.type,
       charge
